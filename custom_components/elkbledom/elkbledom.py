@@ -57,8 +57,11 @@ LOGGER = logging.getLogger(__name__)
 # handle: 0x0003   value: 45 4c 4b 2d 42 4c 45 44 4f 4d 20 20 20 -> NAME ELK-BLEDOM
 # [be:59:7a:00:08:d5][LE]>
 
-WRITE_CHARACTERISTIC_UUIDS = ["0000fff3-0000-1000-8000-00805f9b34fb"]
-READ_CHARACTERISTIC_UUIDS  = ["0000fff4-0000-1000-8000-00805f9b34fb"]
+#WRITE_CHARACTERISTIC_UUIDS = ["0000fff3-0000-1000-8000-00805f9b34fb"]
+#READ_CHARACTERISTIC_UUIDS  = ["0000fff4-0000-1000-8000-00805f9b34fb"]
+
+WRITE_CHARACTERISTIC_UUIDS = ["0000ffe1-0000-1000-8000-00805f9b34fb"]
+READ_CHARACTERISTIC_UUIDS  = ["0000ffe1-0000-1000-8000-00805f9b34fb"]
 
 DEFAULT_ATTEMPTS = 3
 DISCONNECT_DELAY = 120
@@ -165,7 +168,8 @@ class BLEDOMInstance:
 
     @retry_bluetooth_connection_error
     async def set_white(self, intensity: int):
-        await self._write([0x7e, 0x00, 0x01, intensity, 0x00, 0x00, 0x00, 0x00, 0xef])
+        #await self._write([0x7e, 0x00, 0x01, intensity, 0x00, 0x00, 0x00, 0x00, 0xef])
+        await self._write([0x7e, 0xff, 0x01, intensity, 0xff, 0xff, 0xff, 0xff, 0xef])
         self._brightness = intensity
 
     @retry_bluetooth_connection_error
@@ -180,18 +184,21 @@ class BLEDOMInstance:
 
     @retry_bluetooth_connection_error
     async def turn_on(self):
-        await self._write([0x7e, 0x00, 0x04, 0xf0, 0x00, 0x01, 0xff, 0x00, 0xef])
+        #await self._write([0x7e, 0x00, 0x04, 0xf0, 0x00, 0x01, 0xff, 0x00, 0xef])
+        await self._write([0x7e, 0xff, 0x04, 0x01, 0xff, 0xff, 0xff, 0xff, 0xef])
         self._is_on = True
                 
     @retry_bluetooth_connection_error
     async def turn_off(self):
-        await self._write([0x7e, 0x00, 0x04, 0x00, 0x00, 0x00, 0xff, 0x00, 0xef])
+        #await self._write([0x7e, 0x00, 0x04, 0x00, 0x00, 0x00, 0xff, 0x00, 0xef])
+        await self._write([0x7e, 0xff, 0x04, 0x00, 0xff, 0xff, 0xff, 0xff, 0xef])
         self._is_on = False
     
     @retry_bluetooth_connection_error
     async def set_color(self, rgb: Tuple[int, int, int]):
         r, g, b = rgb
-        await self._write([0x7e, 0x00, 0x05, 0x03, r, g, b, 0x00, 0xef])
+        #await self._write([0x7e, 0x00, 0x05, 0x03, r, g, b, 0x00, 0xef])
+        await self._write([0x7e, 0xff, 0x05, 0x03, r, g, b, 0xff, 0xef])
         self._rgb_color = rgb
     
     @retry_bluetooth_connection_error
@@ -200,7 +207,8 @@ class BLEDOMInstance:
             value = 100
         warm = value
         cold = 100 - value
-        await self._write([0x7e, 0x00, 0x05, 0x02, warm, cold, 0x00, 0x00, 0xef])
+        #await self._write([0x7e, 0x00, 0x05, 0x02, warm, cold, 0x00, 0x00, 0xef])
+        await self._write([0x7e, 0xff, 0x05, 0x02, warm, cold, 0xff, 0xff, 0xef])
         self._color_temp = warm
 
     @retry_bluetooth_connection_error
@@ -240,7 +248,7 @@ class BLEDOMInstance:
             if(self._is_on is None):
                 self._is_on = False
                 self._rgb_color = (0, 0, 0)
-                self._brightness = 240
+                self._brightness = 255
 
             #await self._write([0x7e, 0x00, 0x01, 0xfa, 0x00, 0x00, 0x00, 0x00, 0xef])
             #await asyncio.wait_for(future, 5.0)
