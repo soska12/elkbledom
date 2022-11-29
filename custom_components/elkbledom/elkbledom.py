@@ -63,9 +63,9 @@ LOGGER = logging.getLogger(__name__)
 WRITE_CHARACTERISTIC_UUIDS = ["0000ffe1-0000-1000-8000-00805f9b34fb"]
 READ_CHARACTERISTIC_UUIDS  = ["0000ffe1-0000-1000-8000-00805f9b34fb"]
 
-DEFAULT_ATTEMPTS = 3
+DEFAULT_ATTEMPTS = 10
 DISCONNECT_DELAY = 120
-BLEAK_BACKOFF_TIME = 0.25
+BLEAK_BACKOFF_TIME = 0.35
 RETRY_BACKOFF_EXCEPTIONS = (BleakDBusError,)
 WrapFuncType = TypeVar("WrapFuncType", bound=Callable[..., Any])
 
@@ -106,11 +106,11 @@ def retry_bluetooth_connection_error(func: WrapFuncType) -> WrapFuncType:
 
 class BLEDOMInstance:
     def __init__(self, address, hass) -> None:
-        self.loop = asyncio.get_running_loop()
+        # self.loop = asyncio.get_running_loop()
         self._mac = address
         self._hass = hass
         self._device: BLEDevice | None = None
-        self._device = bluetooth.async_ble_device_from_address(self._hass, address, connectable=True)
+        self._device = BleakClient(self._mac) # bluetooth.async_ble_device_from_address(self._hass, address, connectable=True)
         self._connect_lock: asyncio.Lock = asyncio.Lock()
         self._client: BleakClientWithServiceCache | None = None
         self._disconnect_timer: asyncio.TimerHandle | None = None
@@ -282,14 +282,16 @@ class BLEDOMInstance:
                 self._reset_disconnect_timer()
                 return
             LOGGER.debug("%s: Connecting; RSSI: %s", self.name, self.rssi)
-            client = await establish_connection(
-                BleakClientWithServiceCache,
-                self._device,
-                self.name,
-                self._disconnected,
-                cached_services=self._cached_services,
-                ble_device_callback=lambda: self._device,
-            )
+            #client = await establish_connection(
+            #    BleakClientWithServiceCache,
+            #    self._device,
+            #    self.name,
+            #    self._disconnected,
+            #    cached_services=self._cached_services,
+            #    ble_device_callback=lambda: self._device,
+            #)
+            client = BleakClient(self._mac)
+            await client.connect(timeout=20)
             LOGGER.debug("%s: Connected; RSSI: %s", self.name, self.rssi)
             #NOT NEEDED , ONLY ONE READ/WRITE UUID
             #resolved = self._resolve_characteristics(client.services)
